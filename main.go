@@ -1,68 +1,89 @@
-// pr project main.go
 package main
 
 import (
 	"fmt"
-	"io/ioutil"
-	"os"
-	"strconv"
+	"sort"
+	"strings"
 )
 
-func main() {
-	fmt.Println("Hello World!")
-	bs, err := ioutil.ReadFile("stdin.txt")
-	if err != nil {
-		fmt.Println("Error reading file")
-		return
+type myFile struct {
+	name    string
+	strfile string
+	sum     int
+	count0  int
+}
+
+type byIndex []myFile
+
+func (s byIndex) Swap(i, j int) {
+	s[i], s[j] = s[j], s[i]
+}
+
+func (s byIndex) Less(i, j int) bool {
+	f1 := s[i]
+	f2 := s[j]
+	if f1.count0 < f2.count0 {
+		return true
+	}
+	if f1.count0 > f2.count0 {
+		return false
 	}
 
-	fileout, err := os.Create("stdout.txt")
-	if err != nil {
-		fmt.Println("Error creating file")
-		return
+	if f1.sum > f2.sum {
+		return true
 	}
-	defer fileout.Close()
-	str := string(bs)
-	str += " "
-	fmt.Println(str)
+	if f1.sum < f2.sum {
+		return false
+	}
 
-	//fmt.Println(string(str[0]) + string(str[1]) + string(str[2]) + string(str[len(str)-1]))
+	return f1.name < f2.name
+}
+func (s byIndex) Len() int {
+	return 1
+}
 
-	var a []int
-	var count string
-	for i := 0; i < len(str); i++ {
-		if str[i] == ' ' {
-			if len(count) > 0 {
-				x, err := strconv.Atoi(count)
-				if err != nil {
-					fmt.Println("Error in conver int to string, count ="+count+" len =", len(count))
-					return
-				}
-				a = append(a, x)
-				count = ""
+func work(statement string, files []myFile) {
+	//считаем
+
+	words := split(statement, ' ')
+
+	for i := 0; i < len(files); i++ {
+		sum := 0
+		count0 := 0
+		for _, word := range words {
+			x := strings.Count(files[i].strfile, word)
+			if x == 0 {
+				count0++
+			}
+			sum += x
+		}
+		files[i].sum = sum
+		files[i].count0 = count0
+	}
+
+	sort.Sort(byIndex(files))
+
+	//выводим
+	fmt.Println("-----------------------------------------")
+	for _, file := range files {
+		fmt.Println(file.name, file.sum)
+	}
+}
+
+//разбиваем строчку на массив по символу
+func split(s string, sign rune) []string {
+	var slice []string
+	s += string(sign)
+	token := ""
+	for _, ch := range s {
+		if ch == sign {
+			if len(token) > 0 {
+				slice = append(slice, token)
+				token = ""
 			}
 		} else {
-			count += string(str[i])
-		}
-
-	}
-
-	fmt.Println(a)
-
-	for i := 1; i < len(a); i++ {
-		for j := i; j > 0; j-- {
-			if a[j-1] > a[j] {
-				k := a[j]
-				a[j] = a[j-1]
-				a[j-1] = k
-			} else {
-				break
-			}
+			token += string(ch)
 		}
 	}
-
-	for _, val := range a {
-		fileout.WriteString(strconv.Itoa(val) + " ")
-	}
-
+	return slice
 }
