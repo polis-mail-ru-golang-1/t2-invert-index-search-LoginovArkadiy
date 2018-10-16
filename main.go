@@ -1,68 +1,70 @@
-// pr project main.go
+// inverseIndex2 project main.go
 package main
 
 import (
 	"fmt"
+	"inverseIndex2/myFile"
 	"io/ioutil"
 	"os"
-	"strconv"
+	"sort"
 )
 
+const bye = "bye"
+
 func main() {
+
 	fmt.Println("Hello World!")
-	bs, err := ioutil.ReadFile("stdin.txt")
-	if err != nil {
-		fmt.Println("Error reading file")
-		return
+	var files []myFile.MyFile
+	//var names []string
+	//names = append(names, "aa.txt", "bb.txt", "cc.txt")
+	names := os.Args
+
+	for _, name := range names {
+		data, error := ioutil.ReadFile(name)
+		if error != nil {
+			fmt.Println("Ошибка в чтении файла")
+			return
+		}
+		files = append(files, myFile.NewMyFile(name, data))
 	}
+	var statement string
 
-	fileout, err := os.Create("stdout.txt")
-	if err != nil {
-		fmt.Println("Error creating file")
-		return
+	fmt.Println("Если хотите завершить программу введитe '", bye, "'")
+	fmt.Println("Введите поисковую фразу: ")
+	fmt.Fscan(os.Stdin, &statement)
+
+	for statement != bye {
+		words := split(statement, ' ')
+
+		for i := range files {
+			files[i].Analyse(words)
+		}
+		myFile.Count = len(files)
+		sort.Sort(myFile.ByIndex(files))
+
+		for _, file := range files {
+			fmt.Println(file.Name, file.Sum)
+		}
+		////////////////////////////////////////
+		fmt.Println("Введите поисковую фразу: ")
+		fmt.Fscan(os.Stdin, &statement)
 	}
-	defer fileout.Close()
-	str := string(bs)
-	str += " "
-	fmt.Println(str)
+}
 
-	//fmt.Println(string(str[0]) + string(str[1]) + string(str[2]) + string(str[len(str)-1]))
-
-	var a []int
-	var count string
-	for i := 0; i < len(str); i++ {
-		if str[i] == ' ' {
-			if len(count) > 0 {
-				x, err := strconv.Atoi(count)
-				if err != nil {
-					fmt.Println("Error in conver int to string, count ="+count+" len =", len(count))
-					return
-				}
-				a = append(a, x)
-				count = ""
+//разбиваем строчку на массив по символу
+func split(s string, sign rune) []string {
+	var slice []string
+	s += string(sign)
+	token := ""
+	for _, ch := range s {
+		if ch == sign {
+			if len(token) > 0 {
+				slice = append(slice, token)
+				token = ""
 			}
 		} else {
-			count += string(str[i])
-		}
-
-	}
-
-	fmt.Println(a)
-
-	for i := 1; i < len(a); i++ {
-		for j := i; j > 0; j-- {
-			if a[j-1] > a[j] {
-				k := a[j]
-				a[j] = a[j-1]
-				a[j-1] = k
-			} else {
-				break
-			}
+			token += string(ch)
 		}
 	}
-
-	for _, val := range a {
-		fileout.WriteString(strconv.Itoa(val) + " ")
-	}
-
+	return slice
 }
