@@ -2,69 +2,108 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"inverseIndex2/myFile"
 	"io/ioutil"
 	"os"
 	"sort"
+	"strings"
 )
 
 const bye = "bye"
 
-func main() {
+var indexMap map[string]map[string]int
 
-	fmt.Println("Hello World!")
+func main() {
+	indexMap = make(map[string]map[string]int)
+
+	fmt.Println("Hello Inverted Index")
+
 	var files []myFile.MyFile
+
+	initFiles(&files)
+	processing(files)
+}
+
+func initFiles(files *[]myFile.MyFile) {
 	//var names []string
 	//names = append(names, "aa.txt", "bb.txt", "cc.txt")
 	names := os.Args
 
-	for _, name := range names {
-		data, error := ioutil.ReadFile(name)
+	for i := range names {
+		data, error := ioutil.ReadFile(names[i])
 		if error != nil {
 			fmt.Println("Ошибка в чтении файла")
 			return
 		}
-		files = append(files, myFile.NewMyFile(name, data))
-	}
-	var statement string
-
-	fmt.Println("Если хотите завершить программу введитe '", bye, "'")
-	fmt.Println("Введите поисковую фразу: ")
-	fmt.Fscan(os.Stdin, &statement)
-
-	for statement != bye {
-		words := split(statement, ' ')
-
-		for i := range files {
-			files[i].Analyse(words)
+		file := myFile.NewMyFile(names[i], data)
+		for word, value := range file.HashMap {
+			_, ok := indexMap[word]
+			if !ok {
+				indexMap[word] = make(map[string]int)
+			}
+			indexMap[word][file.Name] += value
 		}
+
+		*files = append(*files, file)
+	}
+	/*
+		for word, fileMap := range indexMap {
+			fmt.Print(word + " - ")
+			for name, sum := range fileMap {
+				fmt.Print(name+": ", sum, " ")
+			}
+			fmt.Println()
+		}*/
+
+}
+
+func processing(files []myFile.MyFile) {
+
+	reader := bufio.NewReader(os.Stdin)
+	fmt.Println("---------------------------------------------------")
+	fmt.Println("Если хотите завершить программу введитe '" + bye + "'")
+	fmt.Println("Введите поисковую фразу: ")
+	statement := readLine(reader)
+	for statement != bye {
+		words := strings.Split(statement, " ")
+
+		for _, word := range words {
+			fileMap, ok := indexMap[word]
+			fmt.Println("----------" + word)
+			if ok {
+				for filename, sum := range fileMap {
+					fmt.Println(filename, sum)
+					files[getIndexFileByName(filename, files)].Sum = sum
+				}
+			}
+		}
+		fmt.Println("------------------------------")
 		myFile.Count = len(files)
 		sort.Sort(myFile.ByIndex(files))
 
 		for _, file := range files {
 			fmt.Println(file.Name, file.Sum)
+			file.Sum = 0
 		}
 		////////////////////////////////////////
 		fmt.Println("Введите поисковую фразу: ")
-		fmt.Fscan(os.Stdin, &statement)
+		statement = readLine(reader)
 	}
+
 }
 
-//разбиваем строчку на массив по символу
-func split(s string, sign rune) []string {
-	var slice []string
-	s += string(sign)
-	token := ""
-	for _, ch := range s {
-		if ch == sign {
-			if len(token) > 0 {
-				slice = append(slice, token)
-				token = ""
-			}
-		} else {
-			token += string(ch)
+func readLine(reader *bufio.Reader) string {
+	statementBytes, _, _ := reader.ReadLine()
+	return string(statementBytes)
+}
+
+func getIndexFileByName(name string, files []myFile.MyFile) int {
+	for i := range files {
+		if files[i].Name == name {
+			return i
 		}
 	}
-	return slice
+	return -1
 }
