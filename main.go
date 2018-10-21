@@ -1,70 +1,67 @@
-// inverseIndex2 project main.go
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"inverseIndex2/myFile"
+	"inverseIndex2/myIndex"
 	"io/ioutil"
 	"os"
-	"sort"
+	"strings"
 )
 
 const bye = "bye"
 
+var indexMap map[string]map[string]int
+
 func main() {
+	myIndex.Make()
+	fmt.Println("Hello Inverted Index")
+	initFiles()
+	processing()
+}
 
-	fmt.Println("Hello World!")
-	var files []myFile.MyFile
-	//var names []string
-	//names = append(names, "aa.txt", "bb.txt", "cc.txt")
-	names := os.Args
+func initFiles() {
+	var names []string
+	names = append(names, "aa.txt", "bb.txt", "cc.txt")
+	//names := os.Args
 
-	for _, name := range names {
-		data, error := ioutil.ReadFile(name)
+	for i := range names {
+		data, error := ioutil.ReadFile(names[i])
 		if error != nil {
 			fmt.Println("Ошибка в чтении файла")
 			return
 		}
-		files = append(files, myFile.NewMyFile(name, data))
-	}
-	var statement string
+		file := myFile.NewMyFile(names[i], data)
 
-	fmt.Println("Если хотите завершить программу введитe '", bye, "'")
-	fmt.Println("Введите поисковую фразу: ")
-	fmt.Fscan(os.Stdin, &statement)
+		myIndex.AddFile(file)
 
-	for statement != bye {
-		words := split(statement, ' ')
-
-		for i := range files {
-			files[i].Analyse(words)
-		}
-		myFile.Count = len(files)
-		sort.Sort(myFile.ByIndex(files))
-
-		for _, file := range files {
-			fmt.Println(file.Name, file.Sum)
-		}
-		////////////////////////////////////////
-		fmt.Println("Введите поисковую фразу: ")
-		fmt.Fscan(os.Stdin, &statement)
 	}
 }
 
-//разбиваем строчку на массив по символу
-func split(s string, sign rune) []string {
-	var slice []string
-	s += string(sign)
-	token := ""
-	for _, ch := range s {
-		if ch == sign {
-			if len(token) > 0 {
-				slice = append(slice, token)
-				token = ""
-			}
-		} else {
-			token += string(ch)
+func processing() {
+
+	reader := bufio.NewReader(os.Stdin)
+	fmt.Println("---------------------------------------------------")
+	fmt.Println("Если хотите завершить программу введитe '" + bye + "'")
+	fmt.Println("Введите поисковую фразу: ")
+	statement := readLine(reader)
+	for statement != bye {
+		words := strings.Split(statement, " ")
+		fmt.Println("------------------------------")
+		for _, file := range myIndex.Search(words) {
+			fmt.Println(file.Name, file.Sum)
 		}
+		myIndex.Clear()
+		////////////////////////////////////////
+		fmt.Println("**************************")
+		fmt.Println("Введите поисковую фразу: ")
+		statement = readLine(reader)
 	}
-	return slice
+
+}
+
+func readLine(reader *bufio.Reader) string {
+	statementBytes, _, _ := reader.ReadLine()
+	return string(statementBytes)
 }
