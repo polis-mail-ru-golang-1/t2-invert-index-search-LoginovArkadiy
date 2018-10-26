@@ -22,9 +22,9 @@ func main() {
 }
 
 func initFiles() {
-	var names []string
-	names = append(names, "aa.txt", "bb.txt", "cc.txt")
-	//names := os.Args
+	//var names []string
+	//names = append(names, "aa.txt", "bb.txt", "cc.txt")
+	names := os.Args
 
 	for i := range names {
 		data, error := ioutil.ReadFile(names[i])
