@@ -30,24 +30,27 @@ func addToIndex(hm map[string]int, name string) {
 	}
 }
 
-func searchFile(word string) {
+func searchWord(word string) int {
+	Summa := 0
 	fileMap, ok := indexMap[word]
 	if ok {
 		for filename, sum := range fileMap {
 			files[getIndexFileByName(filename, files)].Sum += sum
+			Summa += sum
 			fmt.Println(filename, sum, word)
 		}
 
 	}
 	fmt.Println("----------")
 	atomic.AddInt64(&count, 1)
+	return Summa
 }
 
 func Search2(words []string) []myFile.MyFile {
 	count = 0
 
 	for _, word := range words {
-		go searchFile(word)
+		go searchWord(word)
 	}
 
 	for count < int64(len(words)) {

@@ -50,18 +50,6 @@ func (file *MyFile) createIndex() {
 
 }
 
-func (file *MyFile) Analyse(words []string) {
-	file.Sum = 0
-	file.count0 = 0
-	for _, word := range words {
-		x := file.HashMap[word]
-		if x == 0 {
-			file.count0++
-		}
-		file.Sum += x
-	}
-}
-
 type ByIndex []MyFile
 
 func (s ByIndex) Swap(i, j int) {
