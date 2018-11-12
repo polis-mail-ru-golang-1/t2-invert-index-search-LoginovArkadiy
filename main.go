@@ -100,6 +100,9 @@ func processing() {
 }
 
 func searchPhrase(phrase string) string {
+	if phrase == bye {
+		return "GOODBYE"
+	}
 	words := strings.Split(phrase, " ")
 	files := myIndex.Search2(words)
 	s := "\n"
