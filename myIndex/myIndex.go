@@ -4,6 +4,7 @@ import "inverseIndex2/myFile"
 import "sort"
 import "sync/atomic"
 import "time"
+import "math/rand"
 import "fmt"
 
 var count int64
@@ -38,6 +39,8 @@ func searchWord(word string) int {
 			files[getIndexFileByName(filename, files)].Sum += sum
 			Summa += sum
 			fmt.Println(filename, sum, word)
+			amt := time.Duration(rand.Intn(100))
+			time.Sleep(time.Millisecond * amt)
 		}
 
 	}
