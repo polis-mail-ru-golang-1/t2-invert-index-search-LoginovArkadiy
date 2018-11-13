@@ -3,13 +3,13 @@ package main
 import (
 	"bufio"
 	"fmt"
-	"inverseIndex2/myFile"
-	"inverseIndex2/myIndex"
 	"io/ioutil"
 	"net/http"
 	"os"
 	"strconv"
 	"strings"
+	"t2-invert-index-search-LoginovArkadiy/myFile"
+	"t2-invert-index-search-LoginovArkadiy/myIndex"
 	"time"
 )
 
@@ -31,12 +31,60 @@ func main() {
 }
 
 var loginFormTmpl = []byte(`
+	<!DOCTYPE html>
 <html>
-	<body>
-	<form action="/" method="post">
-		Введите поисковую фразу: <input type="text" placeholder ="Предложение"  name="phrase"> 
+
+<head>
+	<style>
+		.formIn {
+			background: gray;
+			color: white;
+			border-radius: 5%;
+			padding: 10px;
+			min-width: 30%;
+			position: absolute;
+			top: 50%;
+			left: 50%;
+			margin-right: -50%;
+			transform: translate(-50%, -50%)
+		}
+
+		.Vvedite {
+			position: relative;
+			width: 90%;
+			top: 50%;
+			left: 5%;
+		}
+
+		.input {
+			position: relative;
+			width: 90%;
+			top: 50%;
+			left: 5%;
+			height: 300px;
+		}
+		.button{
+			position: relative;
+			width: 90%;
+			top: 50%;
+			left: 5%;
+
+			
+		}
+	</style>
+
+</head>
+
+<body>
+	<form  class="formIn" action="/" method="post">
+		<div "Vvedite">Введите поисковую фразу:</div>
+		<textarea autofocus class="input" type="submit" name="phrase"></textarea>
+		<input  value="Отправить" type="submit" title="Отправить" class="button"/>
 	</form>
+
+
 </body>
+
 </html>
 `)
 
@@ -57,20 +105,32 @@ func mainPage(w http.ResponseWriter, r *http.Request) {
 }
 
 func initFiles() {
-	//var names []string
-	//names = append(names, "noon", "hard", "time", "prisoners")
-	names := os.Args
+	var names []string
+	names = append(names, "noon", "hard", "time", "prisoners")
+	//names := os.Args
 
 	for i := range names {
+		if i == 0 {
+			continue
+		}
 		data, error := ioutil.ReadFile(names[i])
 		if error != nil {
 			fmt.Println("Ошибка в чтении файла")
 			return
 		}
-		file := myFile.NewMyFile(names[i], data)
+		go func(name string, data []byte) {
+			fmt.Println(name, "пошёл на анализ")
+			file := myFile.NewMyFile(name, data)
+			//time.Sleep(time.Millisecond)
+			myIndex.AddFile(file)
+			fmt.Println(file.Name, "Вернулся")
+		}(names[i], data)
 
-		myIndex.AddFile(file)
+	}
 
+	for myIndex.GetSize()+1 < len(names) {
+		//fmt.Println(myIndex.GetSize())
+		time.Sleep(10 * time.Millisecond)
 	}
 }
 
@@ -103,12 +163,12 @@ func searchPhrase(phrase string) string {
 	if phrase == bye {
 		return "GOODBYE"
 	}
-	words := strings.Split(phrase, " ")
+	words := strings.Fields(phrase)
 	files := myIndex.Search2(words)
 	s := "\n"
 	for _, file := range files {
 		fmt.Println(file.Name, file.Sum)
-		s = s + file.Name + " " + strconv.Itoa(file.Sum) + "\n"
+		s = s + " - " + file.Name + "; совпадений - " + strconv.Itoa(file.Sum) + "\n"
 	}
 	return s
 }

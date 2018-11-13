@@ -1,27 +1,60 @@
 package myIndex
 
 import "testing"
-import "inverseIndex2/myFile"
+import "t2-invert-index-search-LoginovArkadiy/myFile"
 import "strconv"
+import "time"
+import _ "fmt"
 
-var fileStrings []string
-
-func initIndexMap() {
-	fileStrings = nil
+func initIndexMap(fileStrings []string) {
 	indexMap = make(map[string]map[string]int)
 	files = nil
 	count = 0
+
+	for i, fileString := range fileStrings {
+		file := myFile.NewMyFile("name"+strconv.Itoa(i), []byte(fileString))
+		//fmt.Println(file.Words)
+		AddFile(file)
+	}
+
+	for GetSize() < len(fileStrings) {
+		time.Sleep(time.Millisecond * 10)
+	}
+}
+
+func TestCreateIndexMap(t *testing.T) {
+	var fileStrings []string
+	fileStrings = append(fileStrings, "go java go go go хвост java", "мама хвост хвост go мама go хвост java")
+	initIndexMap(fileStrings)
+	expected := make(map[string]map[string]int)
+	expected["мама"] = make(map[string]int)
+	expected["java"] = make(map[string]int)
+	expected["хвост"] = make(map[string]int)
+	expected["go"] = make(map[string]int)
+	expected["мама"]["name1"] = 2
+	expected["java"]["name0"] = 2
+	expected["java"]["name1"] = 1
+	expected["хвост"]["name0"] = 1
+	expected["хвост"]["name1"] = 3
+	expected["go"]["name0"] = 4
+	expected["go"]["name1"] = 2
+
+	for key, filesMap := range expected {
+		for name, count := range filesMap {
+			if indexMap[key][name] != count {
+				t.Errorf("%v is not eqal to expected %v", indexMap, expected)
+			}
+		}
+	}
+
+}
+func TestSearchWord(t *testing.T) {
+	var fileStrings []string
 	fileStrings = append(fileStrings, "мама папа рыба хвост папа мама рыба мама")
 	fileStrings = append(fileStrings, "дом деревня дом крыша корова мама дом java деревня")
 	fileStrings = append(fileStrings, "go java cordova nodejs хвост java")
 
-	for i, fileString := range fileStrings {
-		file := myFile.NewMyFile("name"+strconv.Itoa(i), []byte(fileString))
-		AddFile(file)
-	}
-}
-func TestSearchWord(t *testing.T) {
-	initIndexMap()
+	initIndexMap(fileStrings)
 
 	words := []string{"мама", "деревня", "java", "cordova", "хвост"}
 	expected := []int{4, 2, 3, 1, 2}
@@ -38,7 +71,12 @@ func TestSearchWord(t *testing.T) {
 }
 
 func TestSearch2(t *testing.T) {
-	initIndexMap()
+	var fileStrings []string
+	fileStrings = append(fileStrings, "мама папа рыба хвост папа мама рыба мама")
+	fileStrings = append(fileStrings, "дом деревня дом крыша корова мама дом java деревня")
+	fileStrings = append(fileStrings, "go java cordova nodejs хвост java")
+
+	initIndexMap(fileStrings)
 
 	words := []string{"мама", "деревня", "java", "cordova", "хвост", "go"}
 	var expected []myFile.MyFile

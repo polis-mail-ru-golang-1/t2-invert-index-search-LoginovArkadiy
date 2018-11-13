@@ -1,5 +1,7 @@
 package myFile
 
+import "strings"
+
 var Count = 0
 
 type MyFile struct {
@@ -7,7 +9,7 @@ type MyFile struct {
 	strfile string
 	Sum     int
 	count0  int
-	HashMap map[string]int
+	Words   []string
 }
 
 func (file *MyFile) SetData(sum, count0 int) {
@@ -21,33 +23,14 @@ func NewMyFile(Name string, data []byte) MyFile {
 		count0:  0,
 		Sum:     0,
 		strfile: string(data),
-		HashMap: make(map[string]int),
 	}
 
-	mF.createIndex()
+	mF.createSlice()
 	return mF
 }
 
-func (file *MyFile) createIndex() {
-	var words []string
-	file.strfile += " "
-	var token string
-	for _, ch := range file.strfile {
-		if ch == ' ' {
-			if len(token) > 0 {
-				words = append(words, token)
-				token = ""
-			}
-		} else {
-			token += string(ch)
-		}
-	}
-
-	for _, word := range words {
-		file.HashMap[word]++
-
-	}
-
+func (file *MyFile) createSlice() {
+	file.Words = strings.Fields(file.strfile)
 }
 
 type ByIndex []MyFile
