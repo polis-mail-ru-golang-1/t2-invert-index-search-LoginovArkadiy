@@ -55,20 +55,21 @@ func mainPage(w http.ResponseWriter, r *http.Request) {
 		tmp.Execute(w, files)
 		return
 	}
+	var wg sync.WaitGroup
 
 	phrase := r.FormValue("phrase")
-
-	files = searchPhrase(phrase)
-
+	for i := 0; i < 1000; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			files = append(files, searchPhrase(phrase)...)
+		}()
+	}
+	wg.Wait()
 	tmp.Execute(w, files)
-	myIndex.Clear()
-
 }
 
 func initFiles() {
-	var names []string
-	names = append(names, "lol.exe", "noon", "hard", "time", "prisoners")
-	//names := os.Args
 
 	confFile, _ := os.Open("config.json")
 	defer confFile.Close()
@@ -87,7 +88,7 @@ func initFiles() {
 	}
 
 	var wg sync.WaitGroup
-	wg.Add(len(names) - 1)
+	wg.Add(len(files))
 
 	for _, file := range files {
 		data, error := ioutil.ReadFile(config.Dir + file.Name())
@@ -110,6 +111,7 @@ func searchPhrase(phrase string) []myFile.MyFile {
 	if phrase == bye {
 		return nil
 	}
+
 	words := strings.Fields(phrase)
 	files := myIndex.Search2(words)
 

@@ -3,17 +3,37 @@ package myIndex
 import "t2-invert-index-search-LoginovArkadiy/myFile"
 import "sort"
 import "sync/atomic"
-import "time"
-import _ "math/rand"
 import "sync"
 import "strings"
 
-//import "fmt"
-
 var count int64
 var indexMap map[string]map[string]int
-var files []myFile.MyFile
+var names []string
 var mutex = &sync.Mutex{}
+
+type ByIndex []myFile.MyFile
+
+func (s ByIndex) Swap(i, j int) {
+	s[i], s[j] = s[j], s[i]
+}
+
+func (s ByIndex) Less(i, j int) bool {
+	f1 := s[i]
+	f2 := s[j]
+
+	if f1.Sum > f2.Sum {
+		return true
+	}
+	if f1.Sum < f2.Sum {
+		return false
+	}
+
+	return f1.Name < f2.Name
+}
+
+func (s ByIndex) Len() int {
+	return len(names)
+}
 
 func Make() {
 	indexMap = make(map[string]map[string]int)
@@ -22,23 +42,13 @@ func Make() {
 func AddFile(file myFile.MyFile) {
 	addToIndex(file.Words, file.Name)
 	mutex.Lock()
-	files = append(files, file)
+	names = append(names, file.Name)
 	mutex.Unlock()
 
 	file.Words = nil
 }
 func refactorWord(word string) string {
-	badSigns := []rune{
-		'"',
-		',',
-		'.',
-		'!',
-		'?',
-	}
-
-	for _, sign := range badSigns {
-		word = strings.Trim(word, string(sign))
-	}
+	word = strings.Trim(word, ".,?!-\"")
 	word = strings.ToLower(word)
 	return word
 }
@@ -56,13 +66,13 @@ func addToIndex(words []string, name string) {
 
 	}
 
-	time.Sleep(time.Millisecond)
 }
 
-func searchWord(word string, wg *sync.WaitGroup) int {
+func searchWord(word string, wg *sync.WaitGroup, files []myFile.MyFile) int {
 	Summa := 0
 	defer wg.Done()
 	mutex.Lock()
+	word = refactorWord(word)
 	fileMap, ok := indexMap[strings.ToLower(word)]
 	mutex.Unlock()
 	if ok {
@@ -70,8 +80,6 @@ func searchWord(word string, wg *sync.WaitGroup) int {
 			mutex.Lock()
 			files[getIndexFileByName(filename, files)].Sum += sum
 			Summa += sum
-			//fmt.Println(filename, sum, word)
-			time.Sleep(time.Millisecond)
 			mutex.Unlock()
 		}
 
@@ -82,33 +90,34 @@ func searchWord(word string, wg *sync.WaitGroup) int {
 }
 
 func Search2(words []string) []myFile.MyFile {
+	var files []myFile.MyFile
+	for _, name := range names {
+		files = append(files, myFile.MyFile{
+			Name: name,
+			Sum:  0,
+		})
+	}
 	var wg sync.WaitGroup
 	wg.Add(len(words))
 
 	for _, word := range words {
-		go searchWord(word, &wg)
+		go searchWord(word, &wg, files)
 	}
 
 	wg.Wait()
-	myFile.Count = len(files)
-	sort.Sort(myFile.ByIndex(files))
+	sort.Sort(ByIndex(files))
 	return files
 }
 
-func Clear() {
-	for i := range files {
-		files[i].Sum = 0
-	}
+func GetSize() int {
+	return len(names)
 }
 
-func GetSize() int {
-	return len(files)
-}
 func getIndexFileByName(name string, files []myFile.MyFile) int {
 	for i := range files {
 		if files[i].Name == name {
 			return i
 		}
 	}
-	return -1
+	return 0
 }
