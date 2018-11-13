@@ -1,119 +1,117 @@
 package main
 
 import (
-	"bufio"
+	"encoding/json"
 	"fmt"
-	"inverseIndex2/myFile"
-	"inverseIndex2/myIndex"
+	"html/template"
 	"io/ioutil"
 	"net/http"
 	"os"
-	"strconv"
 	"strings"
-	"time"
+	"sync"
+	"t2-invert-index-search-LoginovArkadiy/myFile"
+	"t2-invert-index-search-LoginovArkadiy/myIndex"
 )
+
+type configuration struct {
+	Dir      string `json:"dir"`
+	Listener string `json:"listener"`
+}
 
 const bye = "bye"
 
-var indexMap map[string]map[string]int
+var tmp *template.Template
+var config = configuration{}
 
 func main() {
 	myIndex.Make()
+	var err error
 	fmt.Println("Hello Inverted Index")
+
+	tmp, err = template.New("indexResponse.html").ParseFiles("indexResponse.html")
+
+	if err != nil {
+		fmt.Println("Что то с indexResponse.html")
+		return
+	}
+
 	initFiles()
 
 	http.HandleFunc("/", mainPage)
 
-	fmt.Println("starting server at :8080")
-	http.ListenAndServe(":8080", nil)
+	fmt.Println("starting server at:", config.Listener)
+	http.ListenAndServe(":"+config.Listener, nil)
 
-	//processing()
 }
-
-var loginFormTmpl = []byte(`
-<html>
-	<body>
-	<form action="/" method="post">
-		Введите поисковую фразу: <input type="text" placeholder ="Предложение"  name="phrase"> 
-	</form>
-</body>
-</html>
-`)
 
 //работа с браузером
 func mainPage(w http.ResponseWriter, r *http.Request) {
+
+	var files = []myFile.MyFile{myFile.MyFile{
+		Name: "Здесь мог быть ответ",
+		Sum:  0,
+	}}
 	if r.Method != http.MethodPost {
-		w.Write(loginFormTmpl)
+		tmp.Execute(w, files)
 		return
 	}
 
 	phrase := r.FormValue("phrase")
 
-	fmt.Fprintln(w, "you enter: ", phrase)
-	time.Sleep(2 * time.Millisecond)
-	fmt.Fprintln(w, "Результаты поиска: ", searchPhrase(phrase))
+	files = searchPhrase(phrase)
+
+	tmp.Execute(w, files)
 	myIndex.Clear()
 
 }
 
 func initFiles() {
-	//var names []string
-	//names = append(names, "noon", "hard", "time", "prisoners")
-	names := os.Args
+	var names []string
+	names = append(names, "lol.exe", "noon", "hard", "time", "prisoners")
+	//names := os.Args
 
-	for i := range names {
-		data, error := ioutil.ReadFile(names[i])
+	confFile, _ := os.Open("config.json")
+	defer confFile.Close()
+	decoder := json.NewDecoder(confFile)
+
+	err := decoder.Decode(&config)
+	if err != nil {
+		fmt.Println("Что то не так с config")
+		panic(err)
+	}
+
+	files, err := ioutil.ReadDir(config.Dir)
+	if err != nil {
+		fmt.Println("Директория введена неверно dir = " + config.Dir + "listener = " + config.Listener)
+		return
+	}
+
+	var wg sync.WaitGroup
+	wg.Add(len(names) - 1)
+
+	for _, file := range files {
+		data, error := ioutil.ReadFile(config.Dir + file.Name())
 		if error != nil {
-			fmt.Println("Ошибка в чтении файла")
+			fmt.Println("Ошибка в чтении файла" + file.Name())
 			return
 		}
-		file := myFile.NewMyFile(names[i], data)
-
-		myIndex.AddFile(file)
+		go func(name string, data []byte) {
+			defer wg.Done()
+			file := myFile.NewMyFile(name, data)
+			myIndex.AddFile(file)
+		}(file.Name(), data)
 
 	}
+
+	wg.Wait()
 }
 
-//работа с конслои
-func processing() {
-
-	reader := bufio.NewReader(os.Stdin)
-	fmt.Println("---------------------------------------------------")
-	fmt.Println("Если хотите завершить программу введитe '" + bye + "'")
-	fmt.Println("Введите поисковую фразу: ")
-	statement := readLine(reader)
-	for statement != bye {
-		words := strings.Split(statement, " ")
-		fmt.Println("------------------------------")
-
-		for _, file := range myIndex.Search2(words) {
-			fmt.Println(file.Name, file.Sum)
-		}
-
-		myIndex.Clear()
-		////////////////////////////////////////
-		fmt.Println("**************************")
-		fmt.Println("Введите поисковую фразу: ")
-		statement = readLine(reader)
-	}
-
-}
-
-func searchPhrase(phrase string) string {
+func searchPhrase(phrase string) []myFile.MyFile {
 	if phrase == bye {
-		return "GOODBYE"
+		return nil
 	}
-	words := strings.Split(phrase, " ")
+	words := strings.Fields(phrase)
 	files := myIndex.Search2(words)
-	s := "\n"
-	for _, file := range files {
-		fmt.Println(file.Name, file.Sum)
-		s = s + file.Name + " " + strconv.Itoa(file.Sum) + "\n"
-	}
-	return s
-}
 
-func readLine(reader *bufio.Reader) string {
-	statementBytes, _, _ := reader.ReadLine()
-	return string(statementBytes)
+	return files
 }
