@@ -9,8 +9,8 @@ import (
 	"os"
 	"strings"
 	"sync"
-	"t2-invert-index-search-LoginovArkadiy/myFile"
-	"t2-invert-index-search-LoginovArkadiy/myIndex"
+	"github.com/polis-mail-ru-golang-1/t2-invert-index-search-LoginovArkadiy/myFile"
+	"github.com/polis-mail-ru-golang-1/t2-invert-index-search-LoginovArkadiy/myIndex"
 )
 
 type configuration struct {
@@ -51,15 +51,19 @@ func mainPage(w http.ResponseWriter, r *http.Request) {
 		Name: "Здесь мог быть ответ",
 		Sum:  0,
 	}}
-	if r.Method != http.MethodPost {
+	/*if r.Method != http.MethodPost {
 		tmp.Execute(w, files)
 		return
-	}
+	}*/
 
 	phrase := r.FormValue("phrase")
 
 	files = searchPhrase(phrase)
-
+	for _, v := range files {
+		fmt.Println(v.Name, v.Sum)
+	}
+	fmt.Println()
+	
 	tmp.Execute(w, files)
 	myIndex.Clear()
 

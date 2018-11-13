@@ -1,6 +1,6 @@
 package myIndex
 
-import "t2-invert-index-search-LoginovArkadiy/myFile"
+import "github.com/polis-mail-ru-golang-1/t2-invert-index-search-LoginovArkadiy/myFile"
 import "sort"
 import "sync/atomic"
 import "time"
