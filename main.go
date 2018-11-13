@@ -55,17 +55,11 @@ func mainPage(w http.ResponseWriter, r *http.Request) {
 		tmp.Execute(w, files)
 		return
 	}
-	var wg sync.WaitGroup
 
 	phrase := r.FormValue("phrase")
-	for i := 0; i < 1000; i++ {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			files = append(files, searchPhrase(phrase)...)
-		}()
-	}
-	wg.Wait()
+
+	files = searchPhrase(phrase)
+
 	tmp.Execute(w, files)
 }
 

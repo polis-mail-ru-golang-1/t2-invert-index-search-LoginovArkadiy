@@ -32,7 +32,7 @@ func (s ByIndex) Less(i, j int) bool {
 }
 
 func (s ByIndex) Len() int {
-	return len(names)
+	return len(s)
 }
 
 func Make() {
@@ -107,10 +107,6 @@ func Search2(words []string) []myFile.MyFile {
 	wg.Wait()
 	sort.Sort(ByIndex(files))
 	return files
-}
-
-func GetSize() int {
-	return len(names)
 }
 
 func getIndexFileByName(name string, files []myFile.MyFile) int {
