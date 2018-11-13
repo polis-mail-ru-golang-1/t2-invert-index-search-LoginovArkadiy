@@ -105,9 +105,9 @@ func mainPage(w http.ResponseWriter, r *http.Request) {
 }
 
 func initFiles() {
-	var names []string
-	names = append(names, "noon", "hard", "time", "prisoners")
-	//names := os.Args
+	//var names []string
+	//names = append(names, "noon", "hard", "time", "prisoners")
+	names := os.Args
 
 	for i := range names {
 		if i == 0 {
