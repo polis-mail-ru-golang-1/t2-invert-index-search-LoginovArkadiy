@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"os"
 	"strconv"
 	"strings"
 	"sync"
@@ -102,9 +103,9 @@ func mainPage(w http.ResponseWriter, r *http.Request) {
 }
 
 func initFiles() {
-	var names []string
-	names = append(names, "lol.exe", "noon", "hard", "time", "prisoners")
-	//names := os.Args
+	//var names []string
+	//names = append(names, "lol.exe", "noon", "hard", "time", "prisoners")
+	names := os.Args
 	var wg sync.WaitGroup
 	wg.Add(len(names) - 1)
 	for i := range names {
