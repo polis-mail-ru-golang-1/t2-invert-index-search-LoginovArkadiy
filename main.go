@@ -3,14 +3,14 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/polis-mail-ru-golang-1/t2-invert-index-search-LoginovArkadiy/myFile"
+	"github.com/polis-mail-ru-golang-1/t2-invert-index-search-LoginovArkadiy/myIndex"
 	"html/template"
 	"io/ioutil"
 	"net/http"
 	"os"
 	"strings"
 	"sync"
-	"t2-invert-index-search-LoginovArkadiy/myFile"
-	"t2-invert-index-search-LoginovArkadiy/myIndex"
 )
 
 type configuration struct {
