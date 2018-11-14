@@ -3,7 +3,6 @@ FROM golang:1.11 as builder
 WORKDIR /usr/src
 
 COPY go.mod go.mod
-COPY go.sum go.sum
 RUN go mod download
 
 COPY . .
