@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<style>
+		.formIn,.response {
+			
+			color: white;
+			border-radius: 5%;
+			padding: 10px;
+			width: 30%;
+			min-height: 150px;
+			position: absolute;
+			top: 35%;
+		}
+		
+		.response {			
+			background: black;
+			margin-left: 60%;
+		}
+
+		.formIn{
+			background: gray;
+			margin-left: 10%;
+		}
+		.Vvedite, .input, .button{
+			position: relative;
+			width: 90%;
+			top: 50%;
+			left: 5%;
+		}
+		.input{
+			height: 100px;
+		}
+
+	
+	</style>
+
+</head>
+
+<body>
+	<form id="1" class="formIn" action="/" method="post">
+		<div class = "Vvedite">Введите поисковую фразу:</div>
+		<textarea autofocus class="input" type="submit" name="phrase"></textarea>
+		<input value="Отправить" type="submit" class="button"/>
+	</form>
+
+	<div class="response">
+	{{range $index, $value := .}}
+		<div class="response_text">
+			- {{.Name}}; совпадений {{.Sum}}
+		</div>
+	{{end}}		
+	</div>
+</body>
+
+</html>

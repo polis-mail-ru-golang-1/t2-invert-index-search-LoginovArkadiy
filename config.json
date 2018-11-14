@@ -1,0 +1,4 @@
+{
+	"dir": "./books/",
+	"listener": "8080"
+}

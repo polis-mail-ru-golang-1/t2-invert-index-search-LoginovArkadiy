@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<style>
+		.formIn {
+			background: gray;
+			color: white;
+			border-radius: 5%;
+			padding: 10px;
+			min-width: 30%;
+			position: absolute;
+			top: 50%;
+			left: 50%;
+			margin-right: -50%;
+			transform: translate(-50%, -50%)
+		}
+
+		.Vvedite {
+			position: relative;
+			width: 90%;
+			top: 50%;
+			left: 5%;
+		}
+
+		.input {
+			position: relative;
+			width: 90%;
+			top: 50%;
+			left: 5%;
+			height: 300px;
+		}
+		.button{
+			position: relative;
+			width: 90%;
+			top: 50%;
+			left: 5%;
+
+			
+		}
+	</style>
+
+</head>
+
+<body>
+	<form id="1" class="formIn" action="/" method="post">
+		<div "Vvedite">Введите поисковую фразу:</div>
+		<textarea autofocus class="input" type="submit" name="phrase"></textarea>
+		<input form="1" value="Отправить" type="button" title="Отправить" class="button"/>
+	</form>
+
+
+</body>
+
+</html>
