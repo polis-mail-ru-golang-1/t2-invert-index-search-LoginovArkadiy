@@ -14,6 +14,6 @@ FROM alpine:latest
 RUN apk update && apk add --no-cache --virtual ca-certificates
 
 WORKDIR /usr/app
-COPY --from=builder /usr/src/daemon .
+COPY --from=builder /usr/src/ .
 
 CMD ["./daemon"]
